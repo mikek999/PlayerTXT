@@ -42,9 +42,8 @@ body.admin-body {
     font-size: 1.8rem;
     margin: 0;
     letter-spacing: 2px;
-    background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
-    -webkit-background-clip: text;
-    -webkit-text-fill-color: transparent;
+    color: #ffffff;
+    font-weight: 700;
     text-shadow: 0 0 20px rgba(165, 180, 252, 0.3);
 }
 
@@ -54,6 +53,7 @@ body.admin-body {
     margin-top: 0.25rem;
     font-weight: 300;
     letter-spacing: 1px;
+    font-style: italic;
 }
 
 /* Navigation */

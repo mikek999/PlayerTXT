@@ -474,10 +474,13 @@ app.get('/api/v1/admin/status', async (req, res) => {
         }
     }
 
+    // Format URL (hide port if standard)
+    let urlPort = PORT == 80 || PORT == 443 ? '' : `:${PORT}`;
+
     res.json({
         dbStatus,
         serverMode: global.SERVER_MODE || 'ONLINE',
-        ip: process.env.GAME_URL || `http://${serverIp}:${PORT}`
+        ip: process.env.GAME_URL || `http://${serverIp}${urlPort}`
     });
 });
 

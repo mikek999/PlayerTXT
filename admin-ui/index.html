@@ -31,13 +31,12 @@
             <div class="page-title">
                 <h2>Dashboard</h2>
                 <span class="version-badge"
-                    style="background: rgba(255,255,255,0.1); color: #888; margin: 0; padding: 0.1rem 0.5rem;">v1.0.0</span>
+                    style="background: rgba(255,255,255,0.1); color: #888; margin: 0; padding: 0.1rem 0.5rem;">Version
+                    1.0.0</span>
             </div>
 
             <div class="status-container">
                 <div style="display: flex; align-items: center; gap: 1rem; justify-content: flex-end;">
-                    <button id="toggleServerBtn" class="btn-primary"
-                        style="padding: 0.25rem 0.6rem; font-size: 0.7rem; display: none;">TOGGLE</button>
                     <p style="margin: 0; font-size: 0.9rem;">Status: <span id="sysStatus"
                             class="status-active">CHECKING...</span></p>
                 </div>
@@ -94,7 +93,6 @@
     <footer class="admin-footer">
         <div class="footer-content">
             <div class="footer-logo">Made in The Republic of Texas</div>
-            <span class="slogan">Your Imagination, Powered by AI.</span>
 
             <div class="credits">
                 Engine Architect: <strong>Mike Kelley</strong><br>
@@ -117,7 +115,6 @@
                 const data = await res.json();
 
                 const statusSpan = document.getElementById('sysStatus');
-                const toggle = document.getElementById('toggleServerBtn');
 
                 if (data.dbStatus === 'ONLINE') {
                     statusSpan.innerText = 'ONLINE';
@@ -128,21 +125,6 @@
                 }
 
                 document.getElementById('serverIp').innerText = data.ip;
-
-                // Toggle Logic
-                toggle.style.display = 'inline-block';
-                toggle.innerText = data.serverMode === 'ONLINE' ? 'GO OFFLINE' : 'GO ONLINE';
-                toggle.style.background = data.serverMode === 'ONLINE' ? '#ff4d4d' : '#00ff9d';
-
-                toggle.onclick = async () => {
-                    const newMode = data.serverMode === 'ONLINE' ? 'OFFLINE' : 'ONLINE';
-                    await fetch('/api/v1/admin/server-mode', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ mode: newMode })
-                    });
-                    updateStatus(); // Refresh
-                };
 
             } catch (e) {
                 document.getElementById('sysStatus').innerText = 'OFFLINE';
