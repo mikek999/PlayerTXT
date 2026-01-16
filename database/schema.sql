@@ -1,12 +1,12 @@
--- Create the Masquerade Protocol Database Schema
+-- Create the PlayerTXT Database Schema
 
-IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'MasqueradeProtocol')
+IF NOT EXISTS (SELECT * FROM sys.databases WHERE name = 'PlayerTXT')
 BEGIN
-    CREATE DATABASE MasqueradeProtocol;
+    CREATE DATABASE PlayerTXT;
 END
 GO
 
-USE MasqueradeProtocol;
+USE PlayerTXT;
 GO
 
 -- 1. Worlds: Different game scenarios (Zork, PlanetFall, etc.)
@@ -116,7 +116,7 @@ CREATE TABLE WorldFacts (
     EntityID INT, -- RoomID or ItemID
     Attribute NVARCHAR(50) NOT NULL, -- Color, Smell, Texture
     Value NVARCHAR(MAX) NOT NULL,
-    FactVector VECTOR(1536), -- SQL 2025 Vector support
+    FactVector VARBINARY(MAX), -- SQL 2025 Vector support (Changed to VARBINARY for SQL 2022 compatibility)
     CreatedAt DATETIME DEFAULT GETDATE()
 );
 

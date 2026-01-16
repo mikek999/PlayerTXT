@@ -58,8 +58,8 @@ class AIOrchestrator {
             }, {
                 headers: {
                     "Authorization": `Bearer ${this.openRouterKey}`,
-                    "HTTP-Referer": "https://github.com/mikek999/The-Masquerade-Protocol",
-                    "X-Title": "The Masquerade Protocol"
+                    "HTTP-Referer": "https://playertxt.org",
+                    "X-Title": "PlayerTXT"
                 }
             });
             return response.data.choices[0].message.content;

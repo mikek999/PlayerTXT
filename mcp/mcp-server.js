@@ -9,12 +9,12 @@ const {
 const axios = require('axios');
 
 /**
- * The Masquerade Protocol MCP Server
+ * The PlayerTXT Protocol MCP Server
  * Bridges the LLM to the Node.js Game Server API
  */
 const server = new Server(
     {
-        name: "masquerade-engine",
+        name: "playertxt-engine",
         version: "1.0.0",
     },
     {

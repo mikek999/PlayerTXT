@@ -14,14 +14,29 @@ const fs = require('fs');
 const path = require('path');
 
 const app = express();
-const PORT = process.env.PORT || 443;
+const PORT = process.env.PORT || 80;
+
+// Internal Log Buffer for Admin UI
+const logBuffer = [];
+const MAX_LOGS = 1000;
+
+function logToBuffer(message, level = 'INFO') {
+    const logEntry = {
+        timestamp: new Date().toISOString(),
+        level,
+        message
+    };
+    logBuffer.push(logEntry);
+    if (logBuffer.length > MAX_LOGS) logBuffer.shift();
+    console.log(`[${logEntry.level}] ${message}`);
+}
 
 // SQL Configuration
 const dbConfig = {
     user: process.env.DB_USER || 'sa',
-    password: process.env.DB_PASSWORD || 'YourStrong!Passw0rd',
+    password: process.env.DB_PASSWORD || 'FireFox1981!',
     server: process.env.DB_SERVER || 'sqlserver',
-    database: 'MasqueradeProtocol',
+    database: 'PlayerTXT',
     options: {
         encrypt: false,
         trustServerCertificate: true
@@ -48,31 +63,9 @@ app.use(express.json());
 app.use(cookieParser());
 
 // Serve Admin UI with basic protection
-const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'MasqueradeAdmin2026';
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'PlayerTXT2026!';
 
-app.use('/admin', (req, res, next) => {
-    // Check for admin session or simple auth header
-    const auth = req.cookies.admin_session;
-    if (auth === ADMIN_PASSWORD) {
-        return next();
-    }
-
-    // Simple login page for admin if not authenticated
-    if (req.path === '/login' || req.path === '/login.html') return next();
-
-    res.send(`
-        <html>
-        <body style="background:#000; color:#00ff9d; font-family:monospace; display:flex; align-items:center; justify-content:center; height:100vh;">
-            <form method="POST" action="/admin/login">
-                <h2>ADMIN ACCESS REQUIRED</h2>
-                <input type="password" name="password" placeholder="ACCESS_KEY" style="background:#000; border:1px solid #00ff9d; color:#00ff9d; padding:10px;">
-                <button type="submit" style="background:#00ff9d; color:#000; border:none; padding:10px; cursor:pointer;">VERIFY</button>
-            </form>
-        </body>
-        </html>
-    `);
-});
-
+// Admin Login Handler (must be before the auth check to avoid loops)
 app.post('/admin/login', express.urlencoded({ extended: true }), (req, res) => {
     const { password } = req.body;
     if (password === ADMIN_PASSWORD) {
@@ -81,6 +74,39 @@ app.post('/admin/login', express.urlencoded({ extended: true }), (req, res) => {
     } else {
         res.status(403).send('ACCESS DENIED');
     }
+});
+
+app.use('/admin', (req, res, next) => {
+    // 1. Check for valid session
+    const auth = req.cookies.admin_session;
+    if (auth === ADMIN_PASSWORD) {
+        // If they just hit /admin, redirect to index.html to be sure
+        if (req.path === '/' || req.path === '') {
+            return res.redirect('/admin/index.html');
+        }
+        return next();
+    }
+
+    // 2. Allow access to login resources (if any external) - none currently
+
+    // 3. For everything else under /admin, if not authenticated, show login
+    // Only show login HTML for page requests, not for styles/js (which would error anyway)
+    if (req.path === '/' || req.path === '' || req.path.endsWith('.html')) {
+        return res.send(`
+            <html>
+            <body style="background:#000; color:#00ff9d; font-family:monospace; display:flex; align-items:center; justify-content:center; height:100vh;">
+                <form method="POST" action="/admin/login">
+                    <h2>ADMIN ACCESS REQUIRED</h2>
+                    <input type="password" name="password" placeholder="ACCESS_KEY" style="background:#000; border:1px solid #00ff9d; color:#00ff9d; padding:10px;" id="accessKey">
+                    <button type="submit" style="background:#00ff9d; color:#000; border:none; padding:10px; cursor:pointer;">VERIFY</button>
+                </form>
+            </body>
+            </html>
+        `);
+    }
+
+    // For other assets (CSS/JS), if not authenticated, just 401
+    res.status(401).send('Unauthorized');
 });
 
 app.use('/admin', express.static(path.join(__dirname, '../admin-ui')));
@@ -110,7 +136,7 @@ async function authenticate(req, res, next) {
 
 // Health Check
 app.get('/health', (req, res) => {
-    res.json({ status: 'active', timestamp: new Date() });
+    res.json({ status: 'active', branding: 'PlayerTXT', timestamp: new Date() });
 });
 
 // Initial Login / Handshake
@@ -162,7 +188,7 @@ app.post('/api/v1/login', async (req, res) => {
         });
 
     } catch (err) {
-        console.error('Login error:', err);
+        logToBuffer(`Login failed for ${username}: ${err.message}`, 'ERROR');
         res.status(500).json({ error: 'Database connection failed' });
     }
 });
@@ -170,6 +196,15 @@ app.post('/api/v1/login', async (req, res) => {
 /**
  * Admin API Endpoints
  */
+
+app.get('/api/v1/admin/logs', (req, res) => {
+    // Check for admin session
+    const auth = req.cookies.admin_session;
+    if (auth !== ADMIN_PASSWORD) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+    res.json(logBuffer);
+});
 
 app.get('/api/v1/admin/stats', async (req, res) => {
     try {
@@ -312,7 +347,7 @@ app.post('/api/v1/action', authenticate, async (req, res) => {
 
 // Base Listen
 app.listen(PORT, async () => {
-    console.log(`The Masquerade Protocol Server running on port ${PORT}`);
+    logToBuffer(`PlayerTXT Protocol Engine online on port ${PORT}`);
 
     // Auto-bootstrap / Retry Logic
     let connected = false;
@@ -322,13 +357,13 @@ app.listen(PORT, async () => {
     while (!connected && retries < maxRetries) {
         try {
             const pool = await sql.connect(dbConfig);
-            console.log('Connected to SQL Cluster.');
+            logToBuffer('Connected to SQL Cluster.');
 
             // Auto-ingest initial story if Worlds table is empty
             const worlds = await pool.request().query('SELECT COUNT(*) as count FROM Worlds');
 
             if (worlds.recordset[0].count === 0) {
-                console.log('No worlds found. Injesting initial scenario...');
+                logToBuffer('No worlds found. Injesting initial scenario...');
                 const injestor = new StoryInjestor(dbConfig);
                 const storyPath = path.join(__dirname, '../scenarios/silent_submarine.json');
 
@@ -347,19 +382,19 @@ app.listen(PORT, async () => {
                 dbConfigMap[row.ConfigKey] = row.ConfigValue;
             });
             aiOrchestrator.updateConfig(dbConfigMap);
-            console.log('AI Orchestrator re-indexed with Dynamic Configuration.');
+            logToBuffer('AI Orchestrator re-indexed with Dynamic Configuration.');
 
             connected = true;
-            console.log('Protocol Engine online.');
+            logToBuffer('PlayerTXT Protocol Engine fully synchronized.');
 
         } catch (err) {
             retries++;
-            console.warn(`Database connection attempt ${retries}/${maxRetries} failed: ${err.message}. Retrying in 5s...`);
+            logToBuffer(`Database connection attempt ${retries}/${maxRetries} failed: ${err.message}`, 'WARN');
             await new Promise(resolve => setTimeout(resolve, 5000));
         }
     }
 
     if (!connected) {
-        console.error('CRITICAL: Failed to connect to database after multiple attempts. Engine remains in degraded state.');
+        logToBuffer('CRITICAL: Failed to connect to database after multiple attempts. Engine remains in degraded state.', 'ERROR');
     }
 });

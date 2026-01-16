@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Masquerade Admin | Dashboard</title>
+    <title>PlayerTXT Admin | Dashboard</title>
     <link rel="stylesheet" href="styles.css">
     <link
         href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Orbitron:wght@400;700&display=swap"
@@ -13,7 +13,7 @@
 
 <body class="admin-body">
     <nav class="admin-nav">
-        <div class="logo">MASQUERADE_ADMIN</div>
+        <div class="logo">PLAYERTXT_ADMIN</div>
         <ul>
             <li><a href="index.html" class="active">DASHBOARD</a></li>
             <li><a href="generator.html">SCENARIO_GEN</a></li>
@@ -63,7 +63,28 @@
                 </tbody>
             </table>
         </section>
+
+        <!-- Log Viewer Section -->
+        <section class="admin-logs-container">
+            <h2>System Logs</h2>
+            <div id="logWindow" class="log-window">
+                <div class="log-entry">Connecting to protocol stream...</div>
+            </div>
+        </section>
     </main>
+
+    <footer class="admin-footer">
+        <div class="credits">
+            Created by <strong>Mike Kelley</strong> | 
+            Built using <strong>Google Gemini</strong> and <strong>Google Antigravity</strong> with <strong>Microsoft SQL Server 2025</strong>
+        </div>
+        <div class="links">
+            Visit the official site: <a href="https://playertxt.org" target="_blank">playertxt.org</a>
+        </div>
+        <div class="copyright">
+            &copy; 2026 PlayerTXT. Released under Open Source License. Portions &copy; 1980 Retro-Vibe.
+        </div>
+    </footer>
 
     <script>
         async function updateStats() {
@@ -105,11 +126,34 @@
             }
         }
 
+        async function updateLogs() {
+            try {
+                const response = await fetch('/api/v1/admin/logs');
+                const logs = await response.json();
+                const logWindow = document.getElementById('logWindow');
+
+                logWindow.innerHTML = logs.map(l => `
+                    <div class="log-entry">
+                        <span class="timestamp">[${new Date(l.timestamp).toLocaleTimeString()}]</span>
+                        <span class="level level-${l.level}">${l.level}</span>
+                        <span class="message">${l.message}</span>
+                    </div>
+                `).join('');
+                
+                // Auto-scroll to bottom
+                logWindow.scrollTop = logWindow.scrollHeight;
+            } catch (err) {
+                console.error("Failed to fetch logs", err);
+            }
+        }
+
         // Refresh cycles
         setInterval(updateStats, 5000);
         setInterval(updatePlayers, 5000);
+        setInterval(updateLogs, 3000);
         updateStats();
         updatePlayers();
+        updateLogs();
     </script>
 </body>
 

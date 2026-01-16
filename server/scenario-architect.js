@@ -11,7 +11,7 @@ class ScenarioArchitect {
 
     async generate(prompt, playerCount = 5) {
         const systemInstruction = `
-            You are a Game Architect for "The Masquerade Protocol".
+            You are a Game Architect for "PlayerTXT".
             Output a PURE JSON story packet according to the following schema version 1.0.0.
             
             JSON Schema Reference:

@@ -1,4 +1,4 @@
-USE MasqueradeProtocol;
+USE PlayerTXT;
 GO
 
 -- Seed an initial "Tutorial" world

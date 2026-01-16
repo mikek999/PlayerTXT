@@ -1,7 +1,7 @@
 const sql = require('mssql');
 
 /**
- * GameEngine - Core logic for The Masquerade Protocol
+ * GameEngine - Core logic for The PlayerTXT Protocol
  */
 class GameEngine {
     constructor(dbConfig, aiOrchestrator) {

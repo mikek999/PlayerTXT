@@ -11,7 +11,7 @@ services:
     volumes:
       - mssql_data:/var/opt/mssql
     networks:
-      - masquerade_net
+      - playertxt_net
 
   ollama:
     image: ollama/ollama:latest
@@ -22,21 +22,23 @@ services:
     volumes:
       - ollama_data:/root/.ollama
     networks:
-      - masquerade_net
+      - playertxt_net
 
   game-server:
     build:
       context: ./server
-    container_name: masquerade_server
+    container_name: playertxt_server
     restart: always
+    volumes:
+      - ./admin-ui:/admin-ui
     ports:
-      - "443:443"
       - "80:80"
     environment:
       - DB_SERVER=sqlserver
       - DB_USER=sa
       - DB_PASSWORD=FireFox1981!
-      - ADMIN_PASSWORD=MasqueradeAdmin2026
+      - ADMIN_PASSWORD=PlayerTXT2026!
+      - PORT=80
       - OLLAMA_URL=http://ollama:11434
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
@@ -44,11 +46,11 @@ services:
       - sqlserver
       - ollama
     networks:
-      - masquerade_net
+      - playertxt_net
       # - traefik_net # Disabled for local workstation (non-swarm)
 
 networks:
-  masquerade_net:
+  playertxt_net:
     # traefik_net:
     #   external: true
 
