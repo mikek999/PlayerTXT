@@ -41,7 +41,7 @@ Configuration is handled via environment variables in `docker-compose.yml`:
 | Variable | Description | Default |
 | :--- | :--- | :--- |
 | `DB_SERVER` | Hostname of the SQL Server | `sqlserver` |
-| `DB_PASSWORD` | SA password for SQL Server | `FireFox1981!` |
+| `DB_PASSWORD` | SA password for SQL Server | `PlayerTXT2026!` |
 | `PORT` | Listening port for the game server | `80` |
 | `ADMIN_PASSWORD` | Access key for the admin UI | `PlayerTXT2026!` |
 

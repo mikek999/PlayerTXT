@@ -7,7 +7,7 @@ services:
       - "1433:1433"
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=FireFox1981!
+      - MSSQL_SA_PASSWORD=PlayerTXT2026!
     volumes:
       - mssql_data:/var/opt/mssql
     networks:
@@ -36,7 +36,7 @@ services:
     environment:
       - DB_SERVER=sqlserver
       - DB_USER=sa
-      - DB_PASSWORD=FireFox1981!
+      - DB_PASSWORD=PlayerTXT2026!
       - ADMIN_PASSWORD=PlayerTXT2026!
       - PORT=80
       - OLLAMA_URL=http://ollama:11434

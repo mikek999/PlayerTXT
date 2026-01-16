@@ -45,7 +45,7 @@ async function logToBuffer(message, level = 'INFO') {
 // SQL Configuration
 const dbConfig = {
     user: process.env.DB_USER || 'sa',
-    password: process.env.DB_PASSWORD || 'FireFox1981!',
+    password: process.env.DB_PASSWORD || 'PlayerTXT2026!',
     server: process.env.DB_SERVER || 'sqlserver',
     database: 'PlayerTXT',
     options: {
