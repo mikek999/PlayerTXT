@@ -155,7 +155,7 @@ server.setRequestHandler(ReadResourceRequestSchema, async (request) => {
 async function main() {
     const transport = new StdioServerTransport();
     await server.connect(transport);
-    console.error("Masquerade MCP Server running on stdio");
+    console.error("PlayerTXT MCP Server running on stdio");
 }
 
 main().catch((error) => {

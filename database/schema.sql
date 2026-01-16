@@ -139,4 +139,13 @@ CREATE TABLE SystemConfig (
     IsSecret BIT DEFAULT 0, -- Mask in UI
     UpdatedAt DATETIME DEFAULT GETDATE()
 );
+
+-- 14. SystemLogs: Persistent logs for the server and admin UI
+CREATE TABLE SystemLogs (
+    LogID BIGINT PRIMARY KEY IDENTITY(1,1),
+    Timestamp DATETIME DEFAULT GETDATE(),
+    Level NVARCHAR(20) NOT NULL, -- INFO, WARN, ERROR
+    Message NVARCHAR(MAX) NOT NULL
+);
+GO
 GO

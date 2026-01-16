@@ -155,6 +155,13 @@ class GameEngine {
             newRoomId: exit.DestRoomID
         };
     }
+    /**
+     * Understudy System - Process AI Character actions
+     */
+    async processAITurns(sessionId) {
+        // To be implemented: LLM-driven actions for NPCs and Understudies
+        console.log(`Processing AI turns for session ${sessionId}`);
+    }
 }
 
 module.exports = GameEngine;

@@ -20,7 +20,7 @@ const PORT = process.env.PORT || 80;
 const logBuffer = [];
 const MAX_LOGS = 1000;
 
-function logToBuffer(message, level = 'INFO') {
+async function logToBuffer(message, level = 'INFO') {
     const logEntry = {
         timestamp: new Date().toISOString(),
         level,
@@ -29,6 +29,17 @@ function logToBuffer(message, level = 'INFO') {
     logBuffer.push(logEntry);
     if (logBuffer.length > MAX_LOGS) logBuffer.shift();
     console.log(`[${logEntry.level}] ${message}`);
+
+    // Persist to SQL if connected
+    try {
+        const pool = await sql.connect(dbConfig);
+        await pool.request()
+            .input('level', sql.NVarChar, level)
+            .input('message', sql.NVarChar, message)
+            .query('INSERT INTO SystemLogs (Level, Message) VALUES (@level, @message)');
+    } catch (err) {
+        // Silently fail if DB not ready yet, it will be in the memory buffer anyway
+    }
 }
 
 // SQL Configuration
@@ -197,13 +208,27 @@ app.post('/api/v1/login', async (req, res) => {
  * Admin API Endpoints
  */
 
-app.get('/api/v1/admin/logs', (req, res) => {
+app.get('/api/v1/admin/logs', async (req, res) => {
     // Check for admin session
     const auth = req.cookies.admin_session;
     if (auth !== ADMIN_PASSWORD) {
         return res.status(401).json({ error: 'Unauthorized' });
     }
-    res.json(logBuffer);
+
+    try {
+        const pool = await sql.connect(dbConfig);
+        const result = await pool.request()
+            .query('SELECT TOP 100 Timestamp as timestamp, Level as level, Message as message FROM SystemLogs ORDER BY LogID DESC');
+
+        // Return DB logs (reversed to show chronological order for UI) or fallback to buffer
+        if (result.recordset.length > 0) {
+            res.json(result.recordset.reverse());
+        } else {
+            res.json(logBuffer);
+        }
+    } catch (err) {
+        res.json(logBuffer);
+    }
 });
 
 app.get('/api/v1/admin/stats', async (req, res) => {
