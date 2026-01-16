@@ -29,18 +29,42 @@ body.admin-body {
     flex-direction: column;
 }
 
-/* Nav Bar */
-.admin-nav {
-    background: rgba(0, 0, 0, 0.9);
+/* Global Header */
+.global-header {
+    background: rgba(15, 23, 42, 0.95);
+    padding: 1.5rem 2rem;
+    text-align: center;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     backdrop-filter: blur(10px);
-    border-bottom: 1px solid var(--glass-border);
-    padding: 0.75rem 3rem;
+}
+
+.global-header h1 {
+    font-size: 1.8rem;
+    margin: 0;
+    letter-spacing: 2px;
+    background: linear-gradient(135deg, #fff 0%, #a5b4fc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 0 20px rgba(165, 180, 252, 0.3);
+}
+
+.header-slogan {
+    font-size: 0.9rem;
+    color: rgba(255, 255, 255, 0.6);
+    margin-top: 0.25rem;
+    font-weight: 300;
+    letter-spacing: 1px;
+}
+
+/* Navigation */
+.admin-nav {
+    background: rgba(30, 41, 59, 0.7);
+    padding: 0 2rem;
     display: flex;
-    justify-content: space-between;
+    justify-content: center;
+    /* Center links since brand is gone */
     align-items: center;
-    position: sticky;
-    top: 0;
-    z-index: 1000;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .nav-brand {
@@ -70,9 +94,9 @@ body.admin-body {
 .admin-nav ul {
     list-style: none;
     display: flex;
-    gap: 2.5rem;
+    gap: 2rem;
+    padding: 1rem 0;
     margin: 0;
-    padding: 0;
 }
 
 .admin-nav a {
@@ -102,18 +126,33 @@ body.admin-body {
     flex: 1;
 }
 
-header {
-    margin-bottom: 3rem;
+/* Content Headers */
+.page-header-flex {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: 2rem;
+    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+    padding-bottom: 1rem;
 }
 
-header h1 {
-    font-family: var(--header-font);
-    font-size: 2.2rem;
-    margin: 0 0 0.5rem 0;
-    background: linear-gradient(to right, #fff, var(--text-secondary));
-    -webkit-background-clip: text;
-    background-clip: text;
-    -webkit-text-fill-color: transparent;
+.page-title h2 {
+    font-size: 2rem;
+    font-weight: 700;
+    margin: 0;
+    color: var(--text-primary);
+}
+
+.status-container {
+    text-align: right;
+}
+
+.server-ip {
+    font-family: 'Space Mono', monospace;
+    font-size: 0.85rem;
+    color: var(--text-accent);
+    margin-top: 0.25rem;
+    opacity: 0.8;
 }
 
 header p {

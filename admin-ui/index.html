@@ -12,6 +12,11 @@
 </head>
 
 <body class="admin-body">
+    <header class="global-header">
+        <h1>PlayerTXT Game Engine</h1>
+        <div class="header-slogan">Your Imagination, Powered by AI.</div>
+    </header>
+
     <nav class="admin-nav">
         <ul>
             <li><a href="index.html" class="active">DASHBOARD</a></li>
@@ -22,17 +27,22 @@
     </nav>
 
     <main class="admin-container">
-        <header>
-            <h1>PlayerTXT Game Engine</h1>
-            <p style="font-size: 0.8rem; margin-bottom: 0.5rem; color: #666;">v1.0.0</p>
-
-            <div style="display: flex; align-items: center; gap: 1rem; margin-top: 1rem;">
-                <p style="margin: 0;">System Status: <span id="sysStatus" class="status-active">CHECKING...</span></p>
-                <button id="toggleServerBtn" class="btn-primary"
-                    style="padding: 0.25rem 0.5rem; font-size: 0.7rem; display: none;">TOGGLE</button>
+        <header class="page-header-flex">
+            <div class="page-title">
+                <h2>Dashboard</h2>
+                <span class="version-badge"
+                    style="background: rgba(255,255,255,0.1); color: #888; margin: 0; padding: 0.1rem 0.5rem;">v1.0.0</span>
             </div>
-            <p id="serverIp"
-                style="font-size: 0.9rem; color: var(--text-accent); margin-top: 0.5rem; font-family: monospace;"></p>
+
+            <div class="status-container">
+                <div style="display: flex; align-items: center; gap: 1rem; justify-content: flex-end;">
+                    <button id="toggleServerBtn" class="btn-primary"
+                        style="padding: 0.25rem 0.6rem; font-size: 0.7rem; display: none;">TOGGLE</button>
+                    <p style="margin: 0; font-size: 0.9rem;">Status: <span id="sysStatus"
+                            class="status-active">CHECKING...</span></p>
+                </div>
+                <div id="serverIp" class="server-ip"></div>
+            </div>
         </header>
 
         <section class="admin-stats">
