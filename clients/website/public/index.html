@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PlayerTXT Web Client</title>
+    <style>
+        :root {
+            --bg-color: #0a0a0a;
+            --text-color: #00ff00;
+            --dim-color: #008800;
+            --font-stack: 'Courier New', Courier, monospace;
+        }
+
+        body {
+            background-color: var(--bg-color);
+            color: var(--text-color);
+            font-family: var(--font-stack);
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            box-sizing: border-box;
+        }
+
+        #login-screen,
+        #game-screen {
+            display: none;
+            flex-direction: column;
+            height: 100%;
+        }
+
+        #login-screen.active,
+        #game-screen.active {
+            display: flex;
+        }
+
+        h1 {
+            margin-top: 0;
+        }
+
+        /* Layout */
+        .game-layout {
+            display: flex;
+            flex: 1;
+            gap: 20px;
+            overflow: hidden;
+        }
+
+        .main-display {
+            flex: 2;
+            border: 2px solid var(--dim-color);
+            padding: 15px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+
+        .panel {
+            border: 2px solid var(--dim-color);
+            padding: 10px;
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        /* Input */
+        .input-area {
+            margin-top: 20px;
+            display: flex;
+            gap: 10px;
+        }
+
+        input {
+            background: #000;
+            border: 1px solid var(--dim-color);
+            color: var(--text-color);
+            font-family: var(--font-stack);
+            font-size: 1.1em;
+            padding: 10px;
+            flex: 1;
+        }
+
+        button {
+            background: var(--dim-color);
+            color: #000;
+            border: none;
+            padding: 10px 20px;
+            cursor: pointer;
+            font-family: var(--font-stack);
+            font-weight: bold;
+        }
+
+        button:hover {
+            background: var(--text-color);
+        }
+
+        /* Comms */
+        .comm-entry {
+            margin-bottom: 5px;
+            border-bottom: 1px solid #111;
+            padding-bottom: 2px;
+        }
+
+        .comm-source {
+            font-weight: bold;
+            opacity: 0.8;
+        }
+    </style>
+</head>
+
+<body>
+
+    <div id="login-screen" class="active">
+        <h1>PlayerTXT Login</h1>
+        <p>Enter your designation to connect to the simulation.</p>
+        <div class="input-area" style="max-width: 400px;">
+            <input type="text" id="username" placeholder="CALLSIGN" autofocus>
+            <button id="loginBtn">CONNECT</button>
+        </div>
+        <div id="login-status" style="margin-top: 10px; color: red;"></div>
+    </div>
+
+    <div id="game-screen">
+        <header
+            style="display: flex; justify-content: space-between; border-bottom: 2px solid var(--dim-color); margin-bottom: 10px; padding-bottom: 10px;">
+            <div id="player-status">OFFLINE</div>
+            <div>TIME: <span id="game-time">--:--</span></div>
+        </header>
+
+        <div class="game-layout">
+            <div class="main-display" id="zone-a">
+                <h2>AWAITING SIGNAL...</h2>
+            </div>
+
+            <div class="sidebar">
+                <div class="panel" id="zone-c">
+                    <h3>STATUS</h3>
+                    <div id="status-content"></div>
+                </div>
+                <div class="panel" id="zone-b">
+                    <h3>COMMS LOG</h3>
+                    <div id="comms-content"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="input-area">
+            <span style="padding: 10px; font-weight: bold;">&gt;</span>
+            <input type="text" id="cmdInput" placeholder="Enter command...">
+            <button id="sendBtn">SEND</button>
+        </div>
+    </div>
+
+    <script src="client.js"></script>
+</body>
+
+</html>
