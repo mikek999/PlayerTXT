@@ -47,7 +47,42 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(cookieParser());
 
-// Serve Admin UI
+// Serve Admin UI with basic protection
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || 'MasqueradeAdmin2026';
+
+app.use('/admin', (req, res, next) => {
+    // Check for admin session or simple auth header
+    const auth = req.cookies.admin_session;
+    if (auth === ADMIN_PASSWORD) {
+        return next();
+    }
+
+    // Simple login page for admin if not authenticated
+    if (req.path === '/login' || req.path === '/login.html') return next();
+
+    res.send(`
+        <html>
+        <body style="background:#000; color:#00ff9d; font-family:monospace; display:flex; align-items:center; justify-content:center; height:100vh;">
+            <form method="POST" action="/admin/login">
+                <h2>ADMIN ACCESS REQUIRED</h2>
+                <input type="password" name="password" placeholder="ACCESS_KEY" style="background:#000; border:1px solid #00ff9d; color:#00ff9d; padding:10px;">
+                <button type="submit" style="background:#00ff9d; color:#000; border:none; padding:10px; cursor:pointer;">VERIFY</button>
+            </form>
+        </body>
+        </html>
+    `);
+});
+
+app.post('/admin/login', express.urlencoded({ extended: true }), (req, res) => {
+    const { password } = req.body;
+    if (password === ADMIN_PASSWORD) {
+        res.cookie('admin_session', ADMIN_PASSWORD, { httpOnly: true });
+        res.redirect('/admin/index.html');
+    } else {
+        res.status(403).send('ACCESS DENIED');
+    }
+});
+
 app.use('/admin', express.static(path.join(__dirname, '../admin-ui')));
 
 // Auth Middleware
@@ -279,34 +314,52 @@ app.post('/api/v1/action', authenticate, async (req, res) => {
 app.listen(PORT, async () => {
     console.log(`The Masquerade Protocol Server running on port ${PORT}`);
 
-    // Auto-ingest initial story if Worlds table is empty
-    try {
-        const pool = await sql.connect(dbConfig);
-        const worlds = await pool.request().query('SELECT COUNT(*) as count FROM Worlds');
+    // Auto-bootstrap / Retry Logic
+    let connected = false;
+    let retries = 0;
+    const maxRetries = 10;
 
-        if (worlds.recordset[0].count === 0) {
-            console.log('No worlds found. Injesting initial scenario...');
-            const injestor = new StoryInjestor(dbConfig);
-            const storyPath = path.join(__dirname, '../scenarios/silent_submarine.json');
+    while (!connected && retries < maxRetries) {
+        try {
+            const pool = await sql.connect(dbConfig);
+            console.log('Connected to SQL Cluster.');
 
-            if (fs.existsSync(storyPath)) {
-                const storyData = JSON.parse(fs.readFileSync(storyPath, 'utf8'));
-                await injestor.injest(storyData);
-            } else {
-                console.warn('Initial scenario file not found at:', storyPath);
+            // Auto-ingest initial story if Worlds table is empty
+            const worlds = await pool.request().query('SELECT COUNT(*) as count FROM Worlds');
+
+            if (worlds.recordset[0].count === 0) {
+                console.log('No worlds found. Injesting initial scenario...');
+                const injestor = new StoryInjestor(dbConfig);
+                const storyPath = path.join(__dirname, '../scenarios/silent_submarine.json');
+
+                if (fs.existsSync(storyPath)) {
+                    const storyData = JSON.parse(fs.readFileSync(storyPath, 'utf8'));
+                    await injestor.injest(storyData);
+                } else {
+                    console.warn('Initial scenario file not found at:', storyPath);
+                }
             }
+
+            // Load AI Config from SystemConfig table
+            const configResult = await pool.request().query('SELECT ConfigKey, ConfigValue FROM SystemConfig');
+            const dbConfigMap = {};
+            configResult.recordset.forEach(row => {
+                dbConfigMap[row.ConfigKey] = row.ConfigValue;
+            });
+            aiOrchestrator.updateConfig(dbConfigMap);
+            console.log('AI Orchestrator re-indexed with Dynamic Configuration.');
+
+            connected = true;
+            console.log('Protocol Engine online.');
+
+        } catch (err) {
+            retries++;
+            console.warn(`Database connection attempt ${retries}/${maxRetries} failed: ${err.message}. Retrying in 5s...`);
+            await new Promise(resolve => setTimeout(resolve, 5000));
         }
+    }
 
-        // Load AI Config from SystemConfig table
-        const configResult = await pool.request().query('SELECT ConfigKey, ConfigValue FROM SystemConfig');
-        const dbConfigMap = {};
-        configResult.recordset.forEach(row => {
-            dbConfigMap[row.ConfigKey] = row.ConfigValue;
-        });
-        aiOrchestrator.updateConfig(dbConfigMap);
-        console.log('AI Orchestrator re-indexed with Dynamic Configuration.');
-
-    } catch (err) {
-        console.error('Auto-bootstrap failed:', err);
+    if (!connected) {
+        console.error('CRITICAL: Failed to connect to database after multiple attempts. Engine remains in degraded state.');
     }
 });

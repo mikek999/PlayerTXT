@@ -7,9 +7,11 @@ services:
       - "1433:1433"
     environment:
       - ACCEPT_EULA=Y
-      - MSSQL_SA_PASSWORD=YourStrong!Passw0rd
+      - MSSQL_SA_PASSWORD=FireFox1981!
     volumes:
       - mssql_data:/var/opt/mssql
+    networks:
+      - masquerade_net
 
   ollama:
     image: ollama/ollama:latest
@@ -19,6 +21,8 @@ services:
       - "11434:11434"
     volumes:
       - ollama_data:/root/.ollama
+    networks:
+      - masquerade_net
 
   game-server:
     build:
@@ -31,7 +35,8 @@ services:
     environment:
       - DB_SERVER=sqlserver
       - DB_USER=sa
-      - DB_PASSWORD=YourStrong!Passw0rd
+      - DB_PASSWORD=FireFox1981!
+      - ADMIN_PASSWORD=MasqueradeAdmin2026
       - OLLAMA_URL=http://ollama:11434
       - GEMINI_API_KEY=${GEMINI_API_KEY}
       - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
@@ -40,18 +45,12 @@ services:
       - ollama
     networks:
       - masquerade_net
-      - traefik_net # Connect to your existing traefik network
-    labels:
-      - "traefik.enable=true"
-      - "traefik.http.routers.masquerade.rule=Host(`game.mikekelleytx.com`)"
-      - "traefik.http.routers.masquerade.entrypoints=websecure"
-      - "traefik.http.routers.masquerade.tls.certresolver=myresolver"
-      - "traefik.http.services.masquerade.loadbalancer.server.port=443"
+      # - traefik_net # Disabled for local workstation (non-swarm)
 
 networks:
   masquerade_net:
-  traefik_net:
-    external: true
+    # traefik_net:
+    #   external: true
 
 volumes:
   mssql_data:
