@@ -20,6 +20,7 @@
     <nav class="admin-nav">
         <ul>
             <li><a href="index.html" class="active">DASHBOARD</a></li>
+            <li><a href="stories.html">STORIES</a></li>
             <li><a href="generator.html">STORY GENERATOR</a></li>
             <li><a href="settings.html">SETTINGS</a></li>
             <li><a href="/admin/logout" style="color: var(--danger);">LOGOUT</a></li>
@@ -45,8 +46,14 @@
         </header>
 
         <section class="admin-stats">
-            <h3>Active Players</h3>
-            <div class="value">0</div>
+            <div class="stat-card">
+                <h3>Online Players</h3>
+                <div class="value">0</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>AI Agents</h3>
+                <div class="value">0</div>
             </div>
 
             <div class="stat-card" style="min-width: 250px;">
@@ -64,31 +71,38 @@
             </div>
 
             <div class="stat-card">
-                <div class="stat-card">
-                    <h3>Mission Timer</h3>
-                    <div class="value" id="dashTimer">--:--</div>
-                </div>
-                <div class="stat-card">
-                    <h3>Global State</h3>
-                    <div class="value" id="dashStatus">IDLE</div>
-                </div>
+                <h3>Story Timer</h3>
+                <div class="value" id="dashTimer">--:--</div>
+            </div>
+
+            <div class="stat-card">
+                <h3>Server Status</h3>
+                <div class="value" id="dashStatus">IDLE</div>
+            </div>
         </section>
 
         <!-- Mission Control Panel -->
         <section class="admin-table-container" style="border-left: 4px solid var(--accent-color);">
-            <h2>Mission Control</h2>
+            <h2>STORY CONTROL</h2>
             <div style="display: flex; gap: 2rem; align-items: flex-end;">
-                <div class="form-group" style="flex: 1; margin-bottom: 0;">
-                    <label>Select Operation (Story)</label>
-                    <select id="storySelect" class="admin-select">
-                        <option value="">LOADING STORIES...</option>
-                    </select>
+                <!-- Selection Container: Hidden when running -->
+                <div id="storySelectionContainer" style="display: flex; gap: 2rem; flex: 1;">
+                    <div class="form-group" style="flex: 1; margin-bottom: 0;">
+                        <label>Select Story</label>
+                        <select id="storySelect" class="admin-select">
+                            <option value="">LOADING STORIES...</option>
+                        </select>
+                    </div>
+                    <div class="form-group" style="width: 150px; margin-bottom: 0;">
+                        <label>Duration (Min)</label>
+                        <input type="number" id="gameDuration" value="30" min="5" max="180">
+                    </div>
                 </div>
-                <div class="form-group" style="width: 150px; margin-bottom: 0;">
-                    <label>Duration (Min)</label>
-                    <input type="number" id="gameDuration" value="30" min="5" max="180">
+
+                <!-- Button Row: Always visible, expands when selection is hidden -->
+                <div class="control-row" style="flex: 0 0 auto;">
+                    <button id="startMissionBtn" class="btn-primary">START STORY</button>
                 </div>
-                <button id="startMissionBtn" class="btn-primary" style="height: 50px;">INITIATE LAUNCH</button>
             </div>
         </section>
 
@@ -188,31 +202,24 @@
                     const status = document.getElementById('dashStatus').innerText;
 
                     if (status === 'RUNNING' || status === 'WAITING') {
-                        // ABORT ACTION
-                        if (!confirm('ABORT MISSION? This will disconnect all players.')) return;
-
+                        // STOP ACTION - No confirmation needed per user request
                         await fetch('/api/v1/admin/game/stop', { method: 'POST' });
-                        alert('Mission Aborted.');
+                        console.log('Story Stopped');
                     } else {
                         // START ACTION
                         const worldId = document.getElementById('storySelect').value;
                         const duration = document.getElementById('gameDuration').value;
-                        if (!worldId) return alert('Select a Story first');
+                        if (!worldId) return console.warn('No story selected'); // Silent fail or console warn
 
-                        const res = await fetch('/api/v1/admin/game/schedule', {
+                        await fetch('/api/v1/admin/game/schedule', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({ worldId, durationMinutes: duration })
                         });
-
-                        if (res.ok) {
-                            alert('Mission Sequence Initiated');
-                        } else {
-                            const err = await res.json();
-                            alert('Launch Failed: ' + err.error);
-                        }
+                        console.log('Story Started');
                     }
-                    updateMissionStatus();
+                    // Immediate update check
+                    setTimeout(updateMissionStatus, 500);
                 };
 
             } catch (e) {
@@ -261,14 +268,23 @@
                 }
 
                 // Toggle Button State
+                const storySelect = document.getElementById('storySelect');
+                const gameDuration = document.getElementById('gameDuration');
+
                 if (data.status === 'RUNNING' || data.status === 'WAITING') {
-                    btn.innerText = 'ABORT MISSION';
-                    btn.style.background = 'red';
+                    btn.innerText = 'STOP STORY';
+                    btn.style.background = 'var(--danger)';
                     btn.style.color = 'white';
+
+                    // Hide Controls
+                    document.getElementById('storySelectionContainer').style.display = 'none';
                 } else if (!btn.disabled) {
-                    btn.innerText = 'INITIATE LAUNCH';
+                    btn.innerText = 'START STORY';
                     btn.style.background = ''; // reset to default CSS
                     btn.style.color = '';
+
+                    // Show Controls
+                    document.getElementById('storySelectionContainer').style.display = 'flex';
                 }
 
                 // Format Timer
@@ -292,9 +308,8 @@
                 const response = await fetch('/api/v1/admin/stats');
                 const stats = await response.json();
 
-                document.querySelectorAll('.stat-card .value')[0].innerText = stats.activeSessions;
-                document.querySelectorAll('.stat-card .value')[1].innerText = stats.onlinePlayers;
-                document.querySelectorAll('.stat-card .value')[2].innerText = stats.aiAgents;
+                document.querySelectorAll('.stat-card .value')[0].innerText = stats.onlinePlayers;
+                document.querySelectorAll('.stat-card .value')[1].innerText = stats.aiAgents;
             } catch (err) {
                 console.error("Failed to fetch stats", err);
             }

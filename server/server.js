@@ -123,7 +123,7 @@ PreFlightChecks.run(); // Initial check
 
 // --- Game Session Scheduler ---
 const GameScheduler = {
-    status: 'WAITING', // WAITING, RUNNING, COMPLETED
+    status: 'IDLE', // WAITING, RUNNING, COMPLETED, IDLE
     timer: 0,
     sessionId: null,
     worldId: null,
@@ -245,6 +245,12 @@ app.use('/admin', (req, res, next) => {
     // 2. Allow access to login resources (if any external) - none currently
 
     // 3. For everything else under /admin, if not authenticated, show login
+    // Allow static assets to pass through to the static handler below if they are not HTML
+    // This allows login page to load css/images
+    if (req.path.match(/\.(css|png|jpg|jpeg|js|ico)$/)) {
+        return next();
+    }
+
     // Only show login HTML for page requests, not for styles/js (which would error anyway)
     if (req.path === '/' || req.path === '' || req.path.endsWith('.html')) {
         return res.send(`
@@ -290,26 +296,28 @@ app.use('/admin', (req, res, next) => {
                     }
                     .slogan {
                         font-size: 0.9rem;
-                        color: #888;
+                        color: #aaa;
                         margin-bottom: 2rem;
                         display: block;
+                        text-shadow: 0 0 5px rgba(255, 255, 255, 0.1);
                     }
                     input {
                         width: 100%;
-                        background: rgba(0,0,0,0.5);
-                        border: 1px solid rgba(0, 255, 157, 0.3);
+                        background: rgba(0, 0, 0, 0.8);
+                        border: 1px solid #333;
                         color: #00ff9d;
                         padding: 1rem;
                         margin-bottom: 1.5rem;
-                        border-radius: 8px;
+                        border-radius: 4px;
                         font-family: 'Space Mono', monospace;
                         text-align: center;
                         font-size: 1.1rem;
                         outline: none;
-                        transition: border-color 0.3s;
+                        transition: all 0.3s;
                     }
                     input:focus {
                         border-color: #00ff9d;
+                        box-shadow: 0 0 15px rgba(0, 255, 157, 0.2);
                     }
                     button {
                         width: 100%;
@@ -617,6 +625,8 @@ app.get('/api/v1/admin/status', async (req, res) => {
     // Get IP
     const nets = os.networkInterfaces();
     let serverIp = 'localhost';
+
+    // Default to the first external IPv4
     for (const name of Object.keys(nets)) {
         for (const net of nets[name]) {
             if (net.family === 'IPv4' && !net.internal) {
@@ -629,11 +639,16 @@ app.get('/api/v1/admin/status', async (req, res) => {
     // Format URL (hide port if standard)
     let urlPort = PORT == 80 || PORT == 443 ? '' : `:${PORT}`;
 
+    // Check for Manual Override via Env (for Docker NATs)
+    if (process.env.DISPLAY_IP) {
+        serverIp = process.env.DISPLAY_IP;
+    }
+
     res.json({
         dbStatus,
         aiStatus,
         serverMode: global.SERVER_MODE || 'ONLINE',
-        ip: serverIp + urlPort,
+        ip: serverIp + urlPort + (serverIp.startsWith('172.') ? ' (Internal)' : ''),
         checks: PreFlightChecks
     });
 });
@@ -720,10 +735,76 @@ app.post('/api/v1/admin/ai/verify', async (req, res) => {
 app.get('/api/v1/admin/stories', async (req, res) => {
     try {
         const pool = await sql.connect(dbConfig);
-        const result = await pool.request().query('SELECT WorldID, Name, Description FROM Worlds ORDER BY CreatedAt DESC');
+        const result = await pool.request().query('SELECT WorldID, Name, Description, CreatedAt FROM Worlds ORDER BY CreatedAt DESC');
         res.json(result.recordset);
     } catch (e) {
         res.status(500).json({ error: e.message });
+    }
+});
+
+// Upload Story
+app.post('/api/v1/admin/stories/upload', async (req, res) => {
+    const storyJson = req.body;
+
+    // Basic validation
+    if (!storyJson || !storyJson.metadata || !storyJson.seed_data) {
+        return res.status(400).json({ error: 'Invalid Story Packet format' });
+    }
+
+    try {
+        const injestor = new StoryInjestor(dbConfig);
+        const worldId = await injestor.injest(storyJson);
+        res.json({ success: true, worldId, message: 'Story successfully injested' });
+    } catch (err) {
+        console.error('Upload failed:', err);
+        res.status(500).json({ error: err.message });
+    }
+});
+
+// Delete Story
+app.delete('/api/v1/admin/stories/:id', async (req, res) => {
+    const worldId = req.params.id;
+    if (!worldId) return res.status(400).json({ error: 'World ID required' });
+
+    const pool = await sql.connect(dbConfig);
+    const transaction = new sql.Transaction(pool);
+
+    try {
+        await transaction.begin();
+
+        // 1. Delete Entity Metadata
+        await transaction.request().input('wid', sql.Int, worldId).query('DELETE FROM EntityMetadata WHERE WorldID = @wid');
+
+        // 2. Delete Exits (Linked to Rooms in this World)
+        // We need to identify rooms first or just join. 
+        // Simpler: Delete Exits where SourceRoomID IN (Select RoomID from Rooms where WorldID = @wid)
+        await transaction.request().input('wid', sql.Int, worldId).query('DELETE FROM Exits WHERE SourceRoomID IN (SELECT RoomID FROM Rooms WHERE WorldID = @wid)');
+
+        // 3. Delete Items
+        await transaction.request().input('wid', sql.Int, worldId).query('DELETE FROM Items WHERE WorldID = @wid');
+
+        // 4. Delete Characters
+        // Also delete SessionPlayers linked to these characters?
+        // First delete SessionPlayers
+        await transaction.request().input('wid', sql.Int, worldId).query('DELETE FROM SessionPlayers WHERE CharacterID IN (SELECT CharacterID FROM Characters WHERE WorldID = @wid)');
+
+        await transaction.request().input('wid', sql.Int, worldId).query('DELETE FROM Characters WHERE WorldID = @wid');
+
+        // 5. Delete Rooms
+        await transaction.request().input('wid', sql.Int, worldId).query('DELETE FROM Rooms WHERE WorldID = @wid');
+
+        // 6. Delete Core Sessions (Optional, but clean)
+        await transaction.request().input('wid', sql.Int, worldId).query('DELETE FROM Sessions WHERE WorldID = @wid');
+
+        // 7. Delete World
+        await transaction.request().input('wid', sql.Int, worldId).query('DELETE FROM Worlds WHERE WorldID = @wid');
+
+        await transaction.commit();
+        res.json({ success: true, message: 'Story deleted successfully' });
+    } catch (err) {
+        await transaction.rollback();
+        console.error('Delete story failed:', err);
+        res.status(500).json({ error: err.message });
     }
 });
 
@@ -737,6 +818,21 @@ app.post('/api/v1/admin/game/schedule', async (req, res) => {
     // 2. Enforce Single Session
     if (GameScheduler.status === 'RUNNING' || GameScheduler.status === 'WAITING') {
         return res.status(409).json({ error: 'Mission already in progress. Abort current mission first.' });
+    }
+
+    // Double Check DB for any zombie active sessions
+    try {
+        const pool = await sql.connect(dbConfig);
+        const activeCheck = await pool.request().query('SELECT SessionID FROM Sessions WHERE IsActive = 1');
+        if (activeCheck.recordset.length > 0) {
+            // Auto-cleanup? Or forceful fail? User wants strict rule.
+            // Let's fail and tell them to reset manually or via abort.
+            // Actually, if GameScheduler is IDLE but DB says Active, we have a desync.
+            // Let's fail for safety.
+            return res.status(409).json({ error: 'Database has an active session marked. Please Abort to clean up.' });
+        }
+    } catch (e) {
+        return res.status(500).json({ error: 'Database Check Failed: ' + e.message });
     }
 
     const { worldId, startTime, durationMinutes } = req.body;
