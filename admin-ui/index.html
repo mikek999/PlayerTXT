@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masquerade Admin | Dashboard</title>
+    <link rel="stylesheet" href="styles.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Orbitron:wght@400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body class="admin-body">
+    <nav class="admin-nav">
+        <div class="logo">MASQUERADE_ADMIN</div>
+        <ul>
+            <li><a href="index.html" class="active">DASHBOARD</a></li>
+            <li><a href="generator.html">SCENARIO_GEN</a></li>
+            <li><a href="#">SETTINGS</a></li>
+        </ul>
+    </nav>
+
+    <main class="admin-container">
+        <header>
+            <h1>Server Dashboard</h1>
+            <p>System Status: <span class="status-active">ONLINE</span></p>
+        </header>
+
+        <section class="admin-stats">
+            <div class="stat-card">
+                <h3>Active Sessions</h3>
+                <div class="value">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>Connected Players</h3>
+                <div class="value">0</div>
+            </div>
+            <div class="stat-card">
+                <h3>AI Understudies</h3>
+                <div class="value">0</div>
+            </div>
+        </section>
+
+        <section class="admin-table-container">
+            <h2>Active Players</h2>
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Username</th>
+                        <th>Character</th>
+                        <th>Room</th>
+                        <th>Type</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="playerTableBody">
+                    <!-- Data will be populated here -->
+                    <tr>
+                        <td colspan="6" class="no-data">No active players found.</td>
+                    </tr>
+                </tbody>
+            </table>
+        </section>
+    </main>
+
+    <script>
+        async function updateStats() {
+            try {
+                const response = await fetch('/api/v1/admin/stats');
+                const stats = await response.json();
+
+                document.querySelectorAll('.stat-card .value')[0].innerText = stats.activeSessions;
+                document.querySelectorAll('.stat-card .value')[1].innerText = stats.onlinePlayers;
+                document.querySelectorAll('.stat-card .value')[2].innerText = stats.aiAgents;
+            } catch (err) {
+                console.error("Failed to fetch stats", err);
+            }
+        }
+
+        async function updatePlayers() {
+            try {
+                const response = await fetch('/api/v1/admin/players');
+                const players = await response.json();
+                const tbody = document.getElementById('playerTableBody');
+
+                if (players.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="6" class="no-data">No active players found.</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = players.map(p => `
+                    <tr>
+                        <td>${p.PlayerID}</td>
+                        <td>${p.Username}</td>
+                        <td>${p.CharacterName || 'N/A'}</td>
+                        <td>${p.RoomName || 'Lobby'}</td>
+                        <td>${p.IsAI ? 'AI' : 'HUMAN'}</td>
+                        <td><span class="status-active">ACTIVE</span></td>
+                    </tr>
+                `).join('');
+            } catch (err) {
+                console.error("Failed to fetch players", err);
+            }
+        }
+
+        // Refresh cycles
+        setInterval(updateStats, 5000);
+        setInterval(updatePlayers, 5000);
+        updateStats();
+        updatePlayers();
+    </script>
+</body>
+
+</html>

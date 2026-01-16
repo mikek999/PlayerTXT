@@ -1,0 +1,191 @@
+:root {
+    --bg-color: #0d0d0d;
+    --card-bg: #1a1a1a;
+    --text-primary: #e0e0e0;
+    --text-accent: #00ff9d;
+    --border-color: #333;
+    --danger: #ff4d4d;
+    --header-font: 'Orbitron', sans-serif;
+    --body-font: 'Space Mono', monospace;
+}
+
+body.admin-body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: var(--body-font);
+    margin: 0;
+    line-height: 1.6;
+}
+
+.admin-nav {
+    background-color: #000;
+    border-bottom: 1px solid var(--border-color);
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.admin-nav .logo {
+    font-family: var(--header-font);
+    font-weight: 700;
+    color: var(--text-accent);
+    letter-spacing: 2px;
+}
+
+.admin-nav ul {
+    list-style: none;
+    display: flex;
+    gap: 2rem;
+    margin: 0;
+}
+
+.admin-nav a {
+    color: var(--text-primary);
+    text-decoration: none;
+    font-size: 0.9rem;
+    transition: color 0.3s;
+}
+
+.admin-nav a:hover, .admin-nav a.active {
+    color: var(--text-accent);
+}
+
+.admin-container {
+    padding: 2rem;
+    max-width: 1200px;
+    margin: 0 auto;
+}
+
+header h1 {
+    font-family: var(--header-font);
+    margin-bottom: 0.5rem;
+}
+
+.status-active {
+    color: var(--text-accent);
+    font-weight: bold;
+}
+
+.admin-stats {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1.5rem;
+    margin: 2rem 0;
+}
+
+.stat-card {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    padding: 1.5rem;
+    border-radius: 4px;
+    text-align: center;
+    transition: border-color 0.3s;
+}
+
+.stat-card:hover {
+    border-color: var(--text-accent);
+}
+
+.stat-card h3 {
+    margin: 0;
+    font-size: 0.8rem;
+    color: #888;
+    text-transform: uppercase;
+}
+
+.stat-card .value {
+    font-size: 2.5rem;
+    font-family: var(--header-font);
+    color: var(--text-accent);
+    margin-top: 0.5rem;
+}
+
+.admin-table-container {
+    background-color: var(--card-bg);
+    border: 1px solid var(--border-color);
+    border-radius: 4px;
+    padding: 1.5rem;
+    margin-top: 2rem;
+}
+
+.admin-table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-top: 1rem;
+}
+
+.admin-table th, .admin-table td {
+    padding: 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--border-color);
+}
+
+.admin-table th {
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    color: #888;
+}
+
+.no-data {
+    text-align: center !important;
+    padding: 2rem !important;
+    color: #555;
+}
+
+/* Generator Form Styles */
+.generator-section {
+    max-width: 800px;
+    margin: 0 auto;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--text-accent);
+}
+
+textarea, input {
+    width: 100%;
+    background: #000;
+    border: 1px solid var(--border-color);
+    color: var(--text-primary);
+    padding: 1rem;
+    font-family: var(--body-font);
+    border-radius: 4px;
+}
+
+textarea:focus, input:focus {
+    outline: none;
+    border-color: var(--text-accent);
+}
+
+.btn-primary {
+    background-color: var(--text-accent);
+    color: #000;
+    border: none;
+    padding: 1rem 2rem;
+    font-family: var(--header-font);
+    font-weight: bold;
+    cursor: pointer;
+    border-radius: 4px;
+    transition: opacity 0.3s;
+}
+
+.btn-primary:hover {
+    opacity: 0.8;
+}
+
+.generator-log {
+    background: #000;
+    border: 1px solid var(--border-color);
+    padding: 1rem;
+    margin-top: 2rem;
+    font-size: 0.8rem;
+    height: 200px;
+    overflow-y: auto;
+}

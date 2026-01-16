@@ -1,0 +1,138 @@
+{
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "title": "Masquerade Story Packet",
+    "type": "object",
+    "properties": {
+        "version": {
+            "type": "string",
+            "description": "Schema version of the story packet"
+        },
+        "metadata": {
+            "type": "object",
+            "properties": {
+                "name": {
+                    "type": "string"
+                },
+                "description": {
+                    "type": "string"
+                },
+                "author": {
+                    "type": "string"
+                },
+                "playerCount": {
+                    "type": "integer"
+                }
+            },
+            "required": [
+                "name",
+                "description"
+            ]
+        },
+        "seed_data": {
+            "type": "object",
+            "properties": {
+                "rooms": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "internalName": {
+                                "type": "string"
+                            },
+                            "displayName": {
+                                "type": "string"
+                            },
+                            "description": {
+                                "type": "string"
+                            },
+                            "exits": {
+                                "type": "array",
+                                "items": {
+                                    "type": "object",
+                                    "properties": {
+                                        "direction": {
+                                            "type": "string"
+                                        },
+                                        "targetRoom": {
+                                            "type": "string"
+                                        },
+                                        "description": {
+                                            "type": "string"
+                                        }
+                                    }
+                                }
+                            },
+                            "metadata": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "characters": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "secretGoal": {
+                                "type": "string"
+                            },
+                            "personaPrompt": {
+                                "type": "string"
+                            },
+                            "startRoom": {
+                                "type": "string"
+                            },
+                            "isAI": {
+                                "type": "boolean"
+                            },
+                            "tier": {
+                                "type": "integer"
+                            },
+                            "metadata": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                },
+                "items": {
+                    "type": "array",
+                    "items": {
+                        "type": "object",
+                        "properties": {
+                            "name": {
+                                "type": "string"
+                            },
+                            "description": {
+                                "type": "string"
+                            },
+                            "startRoom": {
+                                "type": "string"
+                            },
+                            "isCritical": {
+                                "type": "boolean"
+                            },
+                            "isHidden": {
+                                "type": "boolean"
+                            },
+                            "metadata": {
+                                "type": "object"
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "plugin_config": {
+            "type": "object",
+            "description": "Scenario-specific MCP tool registrations and global variables"
+        }
+    },
+    "required": [
+        "version",
+        "metadata",
+        "seed_data"
+    ]
+}

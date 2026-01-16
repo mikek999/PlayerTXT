@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Masquerade Admin | Scenario Generator</title>
+    <link rel="stylesheet" href="styles.css">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Orbitron:wght@400;700&display=swap"
+        rel="stylesheet">
+</head>
+
+<body class="admin-body">
+    <nav class="admin-nav">
+        <div class="logo">MASQUERADE_ADMIN</div>
+        <ul>
+            <li><a href="index.html">DASHBOARD</a></li>
+            <li><a href="generator.html" class="active">SCENARIO_GEN</a></li>
+            <li><a href="#">SETTINGS</a></li>
+        </ul>
+    </nav>
+
+    <main class="admin-container">
+        <header>
+            <h1>Scenario Architect</h1>
+            <p>Powered by Google Gemini 1.5 Pro</p>
+        </header>
+
+        <section class="generator-section">
+            <div class="form-group">
+                <label for="prompt">Story Concept</label>
+                <textarea id="prompt" rows="5"
+                    placeholder="e.g. A murder mystery in a haunted mansion during a blizzard..."></textarea>
+            </div>
+
+            <div class="form-group">
+                <label for="playerCount">Min Players</label>
+                <input type="number" id="playerCount" value="5">
+            </div>
+
+            <button class="btn-primary" id="generateBtn">GENERATE_STRUCTURE</button>
+
+            <div class="generator-log" id="log">
+                > System ready.<br>
+                > Awaiting architectural prompt...
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const log = document.getElementById('log');
+        const btn = document.getElementById('generateBtn');
+        const promptInput = document.getElementById('prompt');
+        const countInput = document.getElementById('playerCount');
+
+        function addLog(msg, color = '#888') {
+            log.innerHTML += `<br><span style="color: ${color}">> ${msg}</span>`;
+            log.scrollTop = log.scrollHeight;
+        }
+
+        btn.onclick = async () => {
+            const prompt = promptInput.value;
+            const playerCount = countInput.value;
+
+            if (!prompt) return addLog("ERROR: Prompt is empty.", "#ff4d4d");
+
+            btn.disabled = true;
+            addLog("Initializing Generation Cycle...", "#00ff9d");
+            addLog("Architect Prompt sent to Google Gemini 1.5 Pro...");
+
+            try {
+                const response = await fetch('/api/v1/admin/generate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ prompt, playerCount })
+                });
+
+                const result = await response.json();
+
+                if (result.success) {
+                    addLog("SUCCESS: Story Structure validated.", "#00ff9d");
+                    addLog(`Baking World: "${result.storyName}" into SQL Database...`, "#00ff9d");
+                    addLog(`World ID ${result.worldId} is now active and ready for players.`, "#00ff9d");
+                } else {
+                    addLog(`ERROR: ${result.error}`, "#ff4d4d");
+                }
+            } catch (err) {
+                addLog("CRITICAL FAILURE: Network error or server timeout.", "#ff4d4d");
+            } finally {
+                btn.disabled = false;
+            }
+        };
+    </script>
+</body>
+
+</html>

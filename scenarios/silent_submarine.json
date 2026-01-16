@@ -1,0 +1,114 @@
+{
+    "version": "1.0.0",
+    "metadata": {
+        "name": "The Silent Submarine",
+        "description": "A survival mystery set on a damaged 1920s submarine. Oxygen is low, and someone is sabotaging the repairs.",
+        "author": "Antigravity",
+        "playerCount": 5
+    },
+    "seed_data": {
+        "rooms": [
+            {
+                "internalName": "torpedo_room",
+                "displayName": "Torpedo Room",
+                "description": "The air is heavy and damp. Torpedo tubes dominate the space.",
+                "exits": [
+                    {
+                        "direction": "NORTH",
+                        "targetRoom": "control_room",
+                        "description": "You squeeze through the bulkhead into the control room."
+                    }
+                ],
+                "metadata": {
+                    "OxygenLevel": "90"
+                }
+            },
+            {
+                "internalName": "control_room",
+                "displayName": "Control Room",
+                "description": "Blinking lights and analog dials surround you. The heartbeat of the sub.",
+                "exits": [
+                    {
+                        "direction": "SOUTH",
+                        "targetRoom": "torpedo_room",
+                        "description": "You move back into the torpedo room."
+                    },
+                    {
+                        "direction": "EAST",
+                        "targetRoom": "officers_mess",
+                        "description": "A hatch leads to the mess hall."
+                    }
+                ],
+                "metadata": {
+                    "OxygenLevel": "95"
+                }
+            },
+            {
+                "internalName": "officers_mess",
+                "displayName": "Officers Mess",
+                "description": "A small, cramped dining area with bolted-down furniture.",
+                "exits": [
+                    {
+                        "direction": "WEST",
+                        "targetRoom": "control_room",
+                        "description": "You return to the control room."
+                    }
+                ],
+                "metadata": {
+                    "OxygenLevel": "92"
+                }
+            }
+        ],
+        "characters": [
+            {
+                "name": "The Captain",
+                "secretGoal": "Expose the saboteur before the sub hits the floor.",
+                "personaPrompt": "You are a disciplined leader. You trust no one but require their help.",
+                "startRoom": "control_room",
+                "isAI": false,
+                "tier": 1
+            },
+            {
+                "name": "The Engineer",
+                "secretGoal": "Repair the oxygen scrubbers while keeping your shady past hidden.",
+                "personaPrompt": "You are practical and stressed. You know the sub better than anyone.",
+                "startRoom": "torpedo_room",
+                "isAI": true,
+                "tier": 1,
+                "metadata": {
+                    "Skill": "Repair"
+                }
+            }
+        ],
+        "items": [
+            {
+                "name": "Wrench",
+                "description": "A solid, heavy tool. Could be a weapon in a pinch.",
+                "startRoom": "torpedo_room",
+                "isCritical": false,
+                "isHidden": false
+            },
+            {
+                "name": "Emergency Mask",
+                "description": "Provides a few minutes of breathable air.",
+                "startRoom": "control_room",
+                "isCritical": true,
+                "isHidden": true,
+                "metadata": {
+                    "AirSeconds": "300"
+                }
+            }
+        ]
+    },
+    "plugin_config": {
+        "global_vars": {
+            "BaseOxygenConsumption": "1"
+        },
+        "custom_tools": [
+            {
+                "name": "check_oxygen",
+                "description": "View the current oxygen level in your room."
+            }
+        ]
+    }
+}

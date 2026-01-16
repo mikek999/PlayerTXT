@@ -1,0 +1,42 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    container_name: mssql_server
+    restart: always
+    ports:
+      - "1433:1433"
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourStrong!Passw0rd
+    volumes:
+      - mssql_data:/var/opt/mssql
+
+  ollama:
+    image: ollama/ollama:latest
+    container_name: ollama
+    restart: always
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+
+  game-server:
+    build:
+      context: ./server
+    container_name: masquerade_server
+    restart: always
+    ports:
+      - "443:443"
+      - "80:80"
+    environment:
+      - DB_SERVER=sqlserver
+      - DB_USER=sa
+      - DB_PASSWORD=YourStrong!Passw0rd
+      - OLLAMA_URL=http://ollama:11434
+    depends_on:
+      - sqlserver
+      - ollama
+
+volumes:
+  mssql_data:
+  ollama_data:
